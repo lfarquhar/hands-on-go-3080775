@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 
@@ -84,10 +85,26 @@ func doAnalysis(data string, counters ...counter) map[string]int {
 	// capture the length of the words in the data
 	analysis["words"] = len(strings.Fields(data))
 
+	var wg sync.WaitGroup // Basically the thread queue
+	var mu sync.Mutex     // Mutually exclusive flag. It acts as a gate keeper to a section of code allowing one thread in and blocking access to all others.
+
 	// loop over the counters and use their name as the key
 	for _, c := range counters {
-		analysis[c.name()] = c.count(data)
+		wg.Add(1) // add the number you have to wait
+
+		// anonymous function is what is being used on the thread
+		// func defined as needed a counter
+		// last (c) is the act of passing that counter in
+		go func(c counter) {
+			defer wg.Done() // always defer to make sure it gets done
+
+			mu.Lock()                          // lock
+			defer mu.Unlock()                  // always defer to make sure it gets done
+			analysis[c.name()] = c.count(data) // do work
+		}(c)
 	}
+
+	wg.Wait() // wait for all to finish
 
 	// return the map
 	return analysis

@@ -1,6 +1,11 @@
 // functions/begin/main.go
 package main
 
+import (
+	"errors"
+	"fmt"
+)
+
 // simple greet function
 //
 
@@ -14,7 +19,26 @@ package main
 // if the second number is zero, it returns  error
 //
 
+func foo(b bool)(string, error){
+	
+	if (b){
+		return "", errors.New("ouch!")
+	}
+	
+	return "foo", nil
+}
+
 func main() {
+	
+	resultStr, err := foo(false)
+
+	fmt.Println(resultStr, err)
+
+
+	resultStr, err = foo(true)
+
+	fmt.Println(resultStr, err)
+
 	// invoke greet function
 	// fmt.Println(greet())
 
